@@ -111,11 +111,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	if function == "init" {
 		//initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
-	} else if function == "delete" {
-		//deletes an entity from its state
-		res, err := t.Delete(stub, args)
-		return res, err
-	} else if function == "init_item" {
+	}  else if function == "init_item" {
 		//create a new item
 		return t.init_item(stub, args)
 	} else if function == "update_item" {
@@ -190,41 +186,15 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 		return nil, errors.New(jsonResp)
 	}
 
-	return valAsbytes, nil                                                                                                        //send it onward
+	return valAsbytes, nil
 }
-
-// ============================================================================================================================
-// Delete - remove a key/value pair from state
-// ============================================================================================================================
-
-// ============================================================================================================================
-// Write - write variable into chaincode state
-// ============================================================================================================================
-func (t *SimpleChaincode) Write(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var name, value string // Entities
-	var err error
-	fmt.Println("running write()")
-
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. name of the variable and value to set")
-	}
-
-	name = args[0]                                                                                                                        //rename for funsies
-	value = args[1]
-	err = stub.PutState(name, []byte(value))                                                                //write the variable into the chaincode state
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
 // ============================================================================================================================
 // Init Item - create a new item, store into chaincode state
 // ============================================================================================================================
 func (t *SimpleChaincode) init_item(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 
-	if len(args) != 2 {
+	if len(args) != 8 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
 
@@ -239,6 +209,12 @@ func (t *SimpleChaincode) init_item(stub shim.ChaincodeStubInterface, args []str
 
 	id := args[0]
 	productId := args[1]
+	quantity := args[2]
+	createdOn := args[3]
+	itemname := args[4]
+	donatorname := args[5]
+	username := args[6]
+	category := args[7]
 
 	//check if item already exists
 	itemAsBytes, err := stub.GetState(id)
@@ -255,6 +231,12 @@ func (t *SimpleChaincode) init_item(stub shim.ChaincodeStubInterface, args []str
 
 	res.ID = id
 	res.Asset.Item.ProductId = productId
+	res.Asset.Item.Quantity = quantity
+	res.Asset.Item.CreatedOn = createdOn
+	res.Asset.Item.Name = itemname
+	res.Asset.Donator.GivenName = donatorname
+	res.Asset.Donator.UserId = username
+	res.Asset.Item.Category = category
 	// think about this
 	res.Status = "NOT_DONATED"
 	// and this issuedOn
@@ -283,8 +265,9 @@ func (t *SimpleChaincode) init_item(stub shim.ChaincodeStubInterface, args []str
 
 func (t *SimpleChaincode) update_item(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
+	var Aval int
 
-	if len(args) != 6 {
+	if len(args) != 7 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 6")
 	}
 
@@ -322,9 +305,12 @@ func (t *SimpleChaincode) update_item(stub shim.ChaincodeStubInterface, args []s
 	}
 
 	// Initialize the chaincode
-	Aval, err = strconv.Atoi(quantity)
+	Aval, err = strconv.Atoi(args[6])
 	if err != nil  {
 		return nil, errors.New("Expecting integer value for asset holding")
+	}
+	if Aval <= 0 {
+		return nil, errors.New("Cannot insert negative or zero quantity")
 	}
 	res.Asset.Item.Quantity = quantity;
 
@@ -430,7 +416,7 @@ func (t *SimpleChaincode) verify_donation(stub shim.ChaincodeStubInterface, args
 		fmt.Println(res);
 		return nil, errors.New("This item not exists")
 	}
-	item_quantity = strconv.Atoi(res.Asset.Item.Quantity)
+	item_quantity, err = strconv.Atoi(res.Asset.Item.Quantity)
 	if err != nil {
 		return nil, errors.New("Problem with parsing the value from the item")
 	}
