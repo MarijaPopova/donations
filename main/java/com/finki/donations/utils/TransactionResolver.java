@@ -9,6 +9,7 @@ import me.grapebaba.hyperledger.fabric.models.ChaincodeOpPayload;
 import me.grapebaba.hyperledger.fabric.models.ChaincodeOpResult;
 import me.grapebaba.hyperledger.fabric.models.ChaincodeSpec;
 import me.grapebaba.hyperledger.fabric.models.Error;
+import me.grapebaba.hyperledger.fabric.models.RpcResponse;
 import me.grapebaba.hyperledger.fabric.models.Transaction;
 
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 
 import com.finki.donations.config.HyperledgerConfig;
+import com.finki.donations.mapper.AssetMapper;
 import com.finki.donations.model.AssetWrapper;
 import com.finki.donations.model.ItemListModel;
 
@@ -40,12 +42,12 @@ public final class TransactionResolver {
 
   public TransactionResolver(HyperledgerConfig hyperledgerConfig){
     this.hyperledgerConfig = hyperledgerConfig;
-  };
+  }
 
   @PostConstruct
   public void setupFabricUrl(){
     this.fabric = Hyperledger.fabric(hyperledgerConfig.getUrl());
-  };
+  }
 
   private static Logger logger = LoggerFactory.getLogger(TransactionResolver.class);
 
@@ -54,24 +56,29 @@ public final class TransactionResolver {
    *
    * @param payload payload for transaction
    */
-  public void getTransactionInfo(ChaincodeOpPayload payload) {
+  public RpcResponse getTransactionInfo(ChaincodeOpPayload payload) {
+    final RpcResponse[] rpcResponse = new RpcResponse[1];
     fabric.chaincode(payload)
       .flatMap((Func1<ChaincodeOpResult, Observable<Transaction>>) chaincodeOpResult -> {
         logger.info(chaincodeOpResult.getResult().getMessage());
         try {
           TimeUnit.SECONDS.sleep(3L);
         } catch (InterruptedException e) {
-          logger.error(e.getMessage());
-        }
+        logger.error(e.getMessage());
+      }
+        rpcResponse[0] = chaincodeOpResult.getResult();
         return fabric.getTransaction(chaincodeOpResult.getResult().getMessage());
       })
-      .subscribe(transaction -> logger.info("Transaction is : {}", transaction), throwable -> {
+      .subscribe(transaction ->
+        logger.info("Transaction is : {}", transaction), throwable -> {
         Error error = ErrorResolver.resolve(throwable, Error.class);
         logger.error("Error : {}", error.getError());
       });
+    return rpcResponse[0];
   }
 
-  public ChaincodeOpPayload createChaincodePayload(String typeOfMethodInvocation,
+  public ChaincodeOpPayload createChaincodePayload(
+    String typeOfMethodInvocation,
     String methodName,
     Collection<String> arguments) {
     return ChaincodeOpPayload.builder()
@@ -82,25 +89,25 @@ public final class TransactionResolver {
         ChaincodeSpec.builder()
           .chaincodeID(
             ChaincodeID.builder()
-              .name(hyperledgerConfig.getUsername())
+              .name(hyperledgerConfig.getChaincode())
               .build())
           .ctorMsg(
             ChaincodeInput.builder()
               .function(methodName)
               .args(arguments)
               .build())
-          .secureContext(hyperledgerConfig.getEnrollSecret())
+          .secureContext(hyperledgerConfig.getUsername())
           .type(ChaincodeSpec.Type.GOLANG)
           .build())
       .build();
   }
 
   public AssetWrapper getAssetFromChaincode(ChaincodeOpPayload chaincodePayload) {
-    AssetHelper assetHelper = new AssetHelper();
+    AssetMapper assetHelper = new AssetMapper();
     fabric.chaincode(chaincodePayload)
       .subscribe(chaincodeOpResult -> {
         logger.info(chaincodeOpResult.toString());
-        AssetWrapper assetWrapper = AssetHelper.convertJsonToAssetWrapper(
+        AssetWrapper assetWrapper = AssetMapper.convertJsonToAssetWrapper(
           chaincodeOpResult.getResult().getMessage()
         );
         assetHelper.setAssetWrapper(assetWrapper);
@@ -113,11 +120,11 @@ public final class TransactionResolver {
   }
 
   public List<ItemListModel> getListOfItemsFromChaincode(ChaincodeOpPayload chaincodePayload){
-    AssetHelper assetHelper = new AssetHelper();
+    AssetMapper assetHelper = new AssetMapper();
         fabric.chaincode(chaincodePayload)
       .subscribe(chaincodeOpResult -> {
         logger.info(chaincodeOpResult.toString());
-        List<ItemListModel> itemListModels = AssetHelper.convertJsonToList(
+        List<ItemListModel> itemListModels = AssetMapper.convertJsonToList(
           chaincodeOpResult
             .getResult()
             .getMessage()

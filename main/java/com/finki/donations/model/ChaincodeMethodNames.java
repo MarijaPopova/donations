@@ -1,8 +1,9 @@
 package com.finki.donations.model;
 
+/**
+ * Class for wrapping all chaincode methods.
+ */
 public class ChaincodeMethodNames {
-   public static final String INIT = "init";
-   public static final String DELETE = "delete";
    public static final String INIT_ITEM = "init_item";
    public static final String UPDATE_ITEM = "update_item";
    public static final String UPDATE_DONATOR = "update_donator";

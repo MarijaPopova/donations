@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+  <Appenders>
+    <Console name="CONSOLE" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss,SSS} | %-12X{user} | %-5p | %-35.35c{1} | %m%n"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="com.netcetera" level="debug"/>
+    <Logger name="org.springframework" level="warn"/>
+    <!-- set this to info to see SOAP request/response dumps -->
+    <Logger name="org.apache.cxf.services" level="info"/>
+    <Logger name="AUDIT_LOG" level="info"/>
+    <Root level="info">
+      <AppenderRef ref="CONSOLE"/>
+    </Root>
+  </Loggers>
+</Configuration>
