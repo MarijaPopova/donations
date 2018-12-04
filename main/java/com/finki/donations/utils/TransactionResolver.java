@@ -62,7 +62,7 @@ public final class TransactionResolver {
       .flatMap((Func1<ChaincodeOpResult, Observable<Transaction>>) chaincodeOpResult -> {
         logger.info(chaincodeOpResult.getResult().getMessage());
         try {
-          TimeUnit.SECONDS.sleep(3L);
+          TimeUnit.SECONDS.sleep(5L);
         } catch (InterruptedException e) {
         logger.error(e.getMessage());
       }
@@ -103,25 +103,25 @@ public final class TransactionResolver {
   }
 
   public AssetWrapper getAssetFromChaincode(ChaincodeOpPayload chaincodePayload) {
-    AssetMapper assetHelper = new AssetMapper();
+    AssetMapper assetMapper = new AssetMapper();
     fabric.chaincode(chaincodePayload)
       .subscribe(chaincodeOpResult -> {
         logger.info(chaincodeOpResult.toString());
         AssetWrapper assetWrapper = AssetMapper.convertJsonToAssetWrapper(
           chaincodeOpResult.getResult().getMessage()
         );
-        assetHelper.setAssetWrapper(assetWrapper);
+        assetMapper.setAssetWrapper(assetWrapper);
 
       }, throwable -> {
         Error error = ErrorResolver.resolve(throwable, Error.class);
         logger.error("Error during query function : {} ", error.getError());
       });
-    return assetHelper.getAssetWrapper();
+    return assetMapper.getAssetWrapper();
   }
 
   public List<ItemListModel> getListOfItemsFromChaincode(ChaincodeOpPayload chaincodePayload){
     AssetMapper assetHelper = new AssetMapper();
-        fabric.chaincode(chaincodePayload)
+        fabric.chaincode(chaincodePayload).timeout(5L, TimeUnit.SECONDS)
       .subscribe(chaincodeOpResult -> {
         logger.info(chaincodeOpResult.toString());
         List<ItemListModel> itemListModels = AssetMapper.convertJsonToList(

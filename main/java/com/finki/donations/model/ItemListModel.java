@@ -1,6 +1,7 @@
 package com.finki.donations.model;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import lombok.Data;
 
@@ -9,16 +10,24 @@ import lombok.Data;
  */
 @Data
 public class ItemListModel {
+  @SerializedName("ID")
   @Expose
   private String id;
-  @Expose
+
+  @SerializedName("status")
   private String status;
+
   @Expose
   private String title;
+  @SerializedName("donatorName")
   @Expose
   private String donator;
+
+  @SerializedName("Category")
   @Expose
   private String category;
+
+  @SerializedName("SubCategory")
   @Expose
   private String subCategory;
 }

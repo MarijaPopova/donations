@@ -2,11 +2,11 @@
 package main
 
 import (
-"errors"
-"fmt"
-"strconv"
-"encoding/json"
-"github.com/hyperledger/fabric/core/chaincode/shim"
+	"errors"
+	"fmt"
+	"strconv"
+	"encoding/json"
+	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
 // SimpleChaincode example simple Chaincode implementation:
@@ -150,7 +150,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 			return allItemsBytes, nil
 		}
 	} else if function == "get_allitems" {
-		allItems, err := t.get_allitems(stub, args)
+		allItems, err := t.get_allitems(stub)
 		if err != nil {
 			fmt.Println("Error from get_items")
 			return nil, err
@@ -393,10 +393,10 @@ func (t *SimpleChaincode) verify_donation(stub shim.ChaincodeStubInterface, args
 	var quantity_for_transver int
 	var item_quantity int
 
-	if len(args) != 4 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
-	//input sanitation
+
 	fmt.Println("- start verifying item")
 
 	id := args[0]
@@ -425,6 +425,7 @@ func (t *SimpleChaincode) verify_donation(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("This item hasn't enough guantity as you requested")
 	} else {
 		item_quantity = item_quantity - quantity_for_transver
+		res.Asset.Item.Quantity = strconv.Itoa(item_quantity)
 	}
 	if(item_quantity == 0) {
 		res.Status = "DONATED"
@@ -448,7 +449,7 @@ func (t *SimpleChaincode) verify_donation(stub shim.ChaincodeStubInterface, args
 
 func (t *SimpleChaincode) get_allitems_for_userId(stub shim.ChaincodeStubInterface, args []string) ([]ItemListModel, error) {
 
-	if len(args[0]) <= 0 {
+	if len(args) <= 0 {
 		return nil, errors.New("1st argument must be a non-empty string")
 	}
 
@@ -487,11 +488,7 @@ func (t *SimpleChaincode) get_allitems_for_userId(stub shim.ChaincodeStubInterfa
 	return allItems, nil
 }
 
-func (t *SimpleChaincode) get_allitems(stub shim.ChaincodeStubInterface, args []string) ([]ItemListModel, error) {
-
-	if len(args[0]) <= 0 {
-		return nil, errors.New("1st argument must be a non-empty string")
-	}
+func (t *SimpleChaincode) get_allitems(stub shim.ChaincodeStubInterface) ([]ItemListModel, error) {
 
 	var allItems [] ItemListModel
 	// Get list of all the keys
@@ -521,6 +518,7 @@ func (t *SimpleChaincode) get_allitems(stub shim.ChaincodeStubInterface, args []
 		newItem.ID =  asset.ID
 		newItem.Title = asset.Asset.Item.Name
 		fmt.Println("Appending item" + value)
+		allItems = append(allItems, newItem)
 	}
 	return allItems, nil
 }

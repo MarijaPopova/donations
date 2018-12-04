@@ -21,7 +21,6 @@ import com.finki.donations.model.MethodType;
 import com.finki.donations.mapper.AssetMapper;
 import com.finki.donations.utils.TransactionResolver;
 
-
 /**
  * Service for communication with hyperledger.
  */
@@ -56,8 +55,9 @@ public class DonationsService {
     AssetWrapper assetWrapper = AssetMapper.createAssetWrapper(asset);
     ChaincodeOpPayload chaincodePayload = transactionResolver.createChaincodePayload(
       MethodType.INVOKE, ChaincodeMethodNames.INIT_ITEM, prepareArgumentsForCreatingAsset(assetWrapper));
-    transactionResolver.getTransactionInfo(chaincodePayload);
-    return assetWrapper;
+    RpcResponse transactionInfo = transactionResolver.getTransactionInfo(chaincodePayload);
+    String transactionInfoStatus = transactionInfo.getStatus();
+    return "OK".equals(transactionInfoStatus) ? assetWrapper : null;
   }
 
   private List<String> prepareArgumentsForCreatingAsset(AssetWrapper assetWrapper){
@@ -78,11 +78,13 @@ public class DonationsService {
    *
    * @param assetWrapper {@link AssetWrapper}
    */
-  public void updateDonator(AssetWrapper assetWrapper) {
+  public AssetWrapper updateDonator(AssetWrapper assetWrapper) {
     log.info("Start updating donator");
     ChaincodeOpPayload chaincodePayload = transactionResolver.createChaincodePayload(
       MethodType.INVOKE, ChaincodeMethodNames.UPDATE_DONATOR, prepareArgumentsToUpdateDonator(assetWrapper));
-    transactionResolver.getTransactionInfo(chaincodePayload);
+    RpcResponse transactionInfo = transactionResolver.getTransactionInfo(chaincodePayload);
+    String transactionInfoStatus = transactionInfo.getStatus();
+    return "OK".equals(transactionInfoStatus) ? assetWrapper : null;
   }
 
   private List<String> prepareArgumentsToUpdateDonator(AssetWrapper assetWrapper){
@@ -97,11 +99,13 @@ public class DonationsService {
    *
    * @param assetWrapper document to be updated.
    */
-  public void updateItem(AssetWrapper assetWrapper) {
+  public AssetWrapper updateItem(AssetWrapper assetWrapper) {
     log.info("Start updating item");
     ChaincodeOpPayload chaincodePayload = transactionResolver.createChaincodePayload(
       MethodType.INVOKE, ChaincodeMethodNames.UPDATE_ITEM, prepareArgumentsToUpdateItem(assetWrapper));
-    transactionResolver.getTransactionInfo(chaincodePayload);
+    RpcResponse transactionInfo = transactionResolver.getTransactionInfo(chaincodePayload);
+    String transactionInfoStatus = transactionInfo.getStatus();
+    return "OK".equals(transactionInfoStatus) ? assetWrapper : null;
   }
 
   private List<String> prepareArgumentsToUpdateItem(AssetWrapper assetWrapper){
@@ -133,8 +137,7 @@ public class DonationsService {
    * @return list from {@link ItemListModel}
    */
   public List<ItemListModel> getAllItemsByDonatorId(String donatorId) {
-    log.info("list all items");
-    final AssetMapper documentHelper = new AssetMapper();
+    log.info("list all items for donator with id {}", donatorId);
     ChaincodeOpPayload chaincodePayload = transactionResolver.createChaincodePayload(MethodType.QUERY,
       ChaincodeMethodNames.GET_All_ITEMS_FOR_USER, Collections.singletonList(donatorId));
     return transactionResolver.getListOfItemsFromChaincode(chaincodePayload);
