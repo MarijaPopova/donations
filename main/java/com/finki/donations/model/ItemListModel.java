@@ -14,11 +14,12 @@ public class ItemListModel {
   @Expose
   private String id;
 
-  @SerializedName("status")
+  @Expose
   private String status;
 
   @Expose
   private String title;
+
   @SerializedName("donatorName")
   @Expose
   private String donator;
@@ -30,4 +31,7 @@ public class ItemListModel {
   @SerializedName("SubCategory")
   @Expose
   private String subCategory;
+
+  @Expose
+  private String quantity;
 }

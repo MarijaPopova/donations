@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -14,15 +13,15 @@ type SimpleChaincode struct {
 }
 
 type AssetWrapper struct {
-	ID       string `json:"id"`
-	Status   string `json:"status"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
 	Asset struct {
 		Donator struct {
-			UserId        string `json:"user-id"`
-			GivenName     string `json:"given-name"`
-			Telephone     string `json:"telephone"`
-			Image 		  string `json:"image"`
-			Email         string `json:"email"`
+			UserId    string `json:"user-id"`
+			GivenName string `json:"given-name"`
+			Telephone string `json:"telephone"`
+			Image     string `json:"image"`
+			Email     string `json:"email"`
 		} `json:"donator"`
 		Item struct {
 			ProductId   string `json:"product-id"`
@@ -40,15 +39,14 @@ type AssetWrapper struct {
 var itemIndexStr = "_itemindex"
 
 type ItemListModel struct {
-	ID        string `json:"ID"`
-	Status    string `json:"status"`
-	Title     string `json:"title"`
-	Donator   string  `json:"donatorName"`
-	Category  string `json:"Category"`
+	ID          string `json:"ID"`
+	Status      string `json:"status"`
+	Title       string `json:"title"`
+	Donator     string `json:"donatorName"`
+	Category    string `json:"Category"`
 	SubCategory string `json:"SubCategory"`
+	Quantity    string `json:"quantity"`
 }
-
-
 
 // ============================================================================================================================
 // Main
@@ -111,7 +109,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	if function == "init" {
 		//initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
-	}  else if function == "init_item" {
+	} else if function == "init_item" {
 		//create a new item
 		return t.init_item(stub, args)
 	} else if function == "update_item" {
@@ -135,7 +133,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	if function == "read" {
 		//read a variable
 		return t.read(stub, args)
-	} else if function == " get_allitems_for_userId" {
+	} else if function == "get_allitems_for_userId" {
 		allItemsForUserId, err := t.get_allitems_for_userId(stub, args)
 		if err != nil {
 			fmt.Println("Error from get_items")
@@ -180,7 +178,7 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 	}
 
 	name = args[0]
-	valAsbytes, err := stub.GetState(name)                                                                        //get the var from chaincode state
+	valAsbytes, err := stub.GetState(name) //get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
 		return nil, errors.New(jsonResp)
@@ -188,6 +186,7 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 
 	return valAsbytes, nil
 }
+
 // ============================================================================================================================
 // Init Item - create a new item, store into chaincode state
 // ============================================================================================================================
@@ -257,7 +256,7 @@ func (t *SimpleChaincode) init_item(stub shim.ChaincodeStubInterface, args []str
 	itemIndex = append(itemIndex, id)
 	fmt.Println("! item index: ", itemIndex)
 	jsonAsBytes, _ = json.Marshal(itemIndex)
-	err =  stub.PutState(itemIndexStr, jsonAsBytes)
+	err = stub.PutState(itemIndexStr, jsonAsBytes)
 
 	fmt.Println("- end init item")
 	return nil, nil
@@ -306,15 +305,14 @@ func (t *SimpleChaincode) update_item(stub shim.ChaincodeStubInterface, args []s
 
 	// Initialize the chaincode
 	Aval, err = strconv.Atoi(args[6])
-	if err != nil  {
+	if err != nil {
 		return nil, errors.New("Expecting integer value for asset holding")
 	}
 	if Aval <= 0 {
 		return nil, errors.New("Cannot insert negative or zero quantity")
 	}
 	res.Asset.Item.Quantity = quantity;
-
-	jsonAsBytes, _ := json.Marshal(res)                                                                        //save new index
+	jsonAsBytes, _ := json.Marshal(res) //save new index
 	err = stub.PutState(id, jsonAsBytes)
 	if err != nil {
 		return nil, err
@@ -361,7 +359,7 @@ func (t *SimpleChaincode) update_donator(stub shim.ChaincodeStubInterface, args 
 		return nil, errors.New("This item not exists")
 	}
 
-	res.Asset.Donator.UserId = userId  // maybe this have to be changed
+	res.Asset.Donator.UserId = userId // maybe this have to be changed
 	res.Asset.Donator.GivenName = name
 	res.Asset.Donator.Email = email
 	res.Asset.Donator.Telephone = telephone
@@ -370,7 +368,7 @@ func (t *SimpleChaincode) update_donator(stub shim.ChaincodeStubInterface, args 
 		res.Asset.Donator.Image = image
 	}
 
-	jsonAsBytes, _ := json.Marshal(res)                                                                        //save new index
+	jsonAsBytes, _ := json.Marshal(res) //save new index
 	err = stub.PutState(id, jsonAsBytes)
 	if err != nil {
 		return nil, err
@@ -386,7 +384,6 @@ func (t *SimpleChaincode) update_donator(stub shim.ChaincodeStubInterface, args 
 	fmt.Println("- end updating issuer")
 	return nil, nil
 }
-
 
 func (t *SimpleChaincode) verify_donation(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
@@ -421,17 +418,17 @@ func (t *SimpleChaincode) verify_donation(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("Problem with parsing the value from the item")
 	}
 
-	if(quantity_for_transver > item_quantity) {
+	if (quantity_for_transver > item_quantity) {
 		return nil, errors.New("This item hasn't enough guantity as you requested")
 	} else {
 		item_quantity = item_quantity - quantity_for_transver
 		res.Asset.Item.Quantity = strconv.Itoa(item_quantity)
 	}
-	if(item_quantity == 0) {
+	if (item_quantity == 0) {
 		res.Status = "DONATED"
 	}
 
-	jsonAsBytes, _ := json.Marshal(res)                                                                        //save new index
+	jsonAsBytes, _ := json.Marshal(res) //save new index
 	err = stub.PutState(id, jsonAsBytes)
 	if err != nil {
 		return nil, err
@@ -479,8 +476,11 @@ func (t *SimpleChaincode) get_allitems_for_userId(stub shim.ChaincodeStubInterfa
 			newItem := ItemListModel{}
 			newItem.Donator = asset.Asset.Donator.GivenName
 			newItem.Status = asset.Status
-			newItem.ID =  asset.ID
+			newItem.ID = asset.ID
 			newItem.Title = asset.Asset.Item.Name
+			newItem.Category = asset.Asset.Item.Category
+			newItem.SubCategory = asset.Asset.Item.SubCategory
+			newItem.Quantity = asset.Asset.Item.Quantity
 			fmt.Println("Appending item" + value)
 			allItems = append(allItems, newItem)
 		}
@@ -515,12 +515,13 @@ func (t *SimpleChaincode) get_allitems(stub shim.ChaincodeStubInterface) ([]Item
 		newItem := ItemListModel{}
 		newItem.Donator = asset.Asset.Donator.GivenName
 		newItem.Status = asset.Status
-		newItem.ID =  asset.ID
+		newItem.ID = asset.ID
 		newItem.Title = asset.Asset.Item.Name
+		newItem.Category = asset.Asset.Item.Category
+		newItem.SubCategory = asset.Asset.Item.SubCategory
+		newItem.Quantity = asset.Asset.Item.Quantity
 		fmt.Println("Appending item" + value)
 		allItems = append(allItems, newItem)
 	}
 	return allItems, nil
 }
-
-
