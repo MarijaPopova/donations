@@ -1,8 +1,5 @@
 package com.finki.donations.model;
 
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotEmpty;
-
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 

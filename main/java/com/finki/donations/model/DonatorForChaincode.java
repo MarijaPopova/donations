@@ -9,12 +9,12 @@ import lombok.Data;
  * Model for storing the data for donator.
  */
 @Data
-public class Donator {
-  @SerializedName("user-id")
+public class DonatorForChaincode {
+  @SerializedName("userId")
   @Expose
   private String userId;
 
-  @SerializedName("given-name")
+  @SerializedName("givenName")
   @Expose
   private String givenName;
 

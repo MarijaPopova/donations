@@ -7,11 +7,6 @@
   </Appenders>
 
   <Loggers>
-    <Logger name="com.netcetera" level="debug"/>
-    <Logger name="org.springframework" level="warn"/>
-    <!-- set this to info to see SOAP request/response dumps -->
-    <Logger name="org.apache.cxf.services" level="info"/>
-    <Logger name="AUDIT_LOG" level="info"/>
     <Root level="info">
       <AppenderRef ref="CONSOLE"/>
     </Root>

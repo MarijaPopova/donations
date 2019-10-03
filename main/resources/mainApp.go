@@ -104,8 +104,6 @@ func (t *SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 // ============================================================================================================================
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Println("invoke is running " + function)
-
-	// Handle different functions
 	if function == "init" {
 		//initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
@@ -194,7 +192,7 @@ func (t *SimpleChaincode) init_item(stub shim.ChaincodeStubInterface, args []str
 	var err error
 
 	if len(args) != 8 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+		return nil, errors.New("Incorrect number of arguments. Expecting 8")
 	}
 
 	//input sanitation

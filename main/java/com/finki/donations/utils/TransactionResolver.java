@@ -27,6 +27,7 @@ import javax.annotation.PostConstruct;
 
 import com.finki.donations.config.HyperledgerConfig;
 import com.finki.donations.mapper.AssetMapper;
+import com.finki.donations.mapper.AssetMapperForChaincode;
 import com.finki.donations.model.AssetWrapper;
 import com.finki.donations.model.ItemListModel;
 
@@ -107,10 +108,10 @@ public final class TransactionResolver {
     fabric.chaincode(chaincodePayload)
       .subscribe(chaincodeOpResult -> {
         logger.info(chaincodeOpResult.toString());
-        AssetWrapper assetWrapper = AssetMapper.convertJsonToAssetWrapper(
+        AssetMapperForChaincode assetWrapper = AssetMapper.convertJsonToAssetWrapper(
           chaincodeOpResult.getResult().getMessage()
         );
-        assetMapper.setAssetWrapper(assetWrapper);
+        assetMapper.setAssetForView(assetWrapper);
 
       }, throwable -> {
         Error error = ErrorResolver.resolve(throwable, Error.class);

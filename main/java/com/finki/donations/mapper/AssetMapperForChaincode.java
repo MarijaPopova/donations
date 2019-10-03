@@ -1,16 +1,13 @@
-package com.finki.donations.model;
+package com.finki.donations.mapper;
 
+import com.finki.donations.model.Asset;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import lombok.Data;
 
-/**
- * Model for wrapping the asset stored on hyperledger.
- */
 @Data
-public class AssetWrapper {
-
+public class AssetMapperForChaincode {
   @SerializedName("id")
   @Expose
   private String id;
@@ -18,7 +15,7 @@ public class AssetWrapper {
   @SerializedName("status")
   private String status;
 
-  @SerializedName("asset")
+  @SerializedName("Asset")
   @Expose
   private Asset asset;
 }

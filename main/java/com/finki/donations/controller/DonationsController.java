@@ -44,7 +44,7 @@ public class DonationsController {
     if (assetWrapper == null) {
       return new ResponseEntity<>("This document doesn't exist", HttpStatus.NOT_FOUND);
     }
-    return new ResponseEntity<>(assetWrapper.getAsset(), HttpStatus.OK);
+    return new ResponseEntity<>(assetWrapper, HttpStatus.OK);
   }
 
   /**
@@ -90,11 +90,11 @@ public class DonationsController {
    * @param asset asset to be created.
    * @return new {@link AssetWrapper} if it's stored on blockchain, otherwise return proper http status.
    */
-  @RequestMapping(value = "createAsset", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity createNewAsset(@RequestBody Asset asset){
+  @RequestMapping(value = "createAsset", method = RequestMethod.POST)
+  public ResponseEntity createNewAsset(@RequestParam String asset){
     AssetWrapper assetWrapper = donationsService.createAssetWrapper(asset);
     if(assetWrapper != null) {
-      return new ResponseEntity<>(assetWrapper, HttpStatus.OK);
+      return new ResponseEntity<>("it's ok", HttpStatus.OK);
     } else {
       return new ResponseEntity<>("Problem with saving the asset on blockchain", HttpStatus.SERVICE_UNAVAILABLE);
     }
@@ -123,7 +123,7 @@ public class DonationsController {
    * @return  updated {@link AssetWrapper} if it's stored on blockchain, otherwise return proper http status.
    */
   @RequestMapping(value = "updateItemForAsset", method = RequestMethod.POST)
-  public ResponseEntity updateItemForAsset(@RequestBody AssetWrapper assetWrapper){
+  public ResponseEntity updateItemForAsset(@RequestParam String assetWrapper){
     AssetWrapper updatedAssetWrapper = donationsService.updateItem(assetWrapper);
     if(assetWrapper != null) {
       return new ResponseEntity<>(updatedAssetWrapper, HttpStatus.OK);
@@ -139,12 +139,13 @@ public class DonationsController {
    * @param quantity the quantity that should be donated.
    * @return  updated {@link AssetWrapper} if it's stored on blockchain, otherwise return proper http status.
    */
-  @RequestMapping(value = "verifyDonation", method = RequestMethod.GET)
+  @RequestMapping(value = "verifyDonation", method = RequestMethod.POST)
   public ResponseEntity verifyDonation(@RequestParam String assetId, @RequestParam String quantity){
     RpcResponse rpcResponse = donationsService.verifyDonation(assetId, quantity);
     String status = rpcResponse.getStatus();
     if(status.equals("OK")) {
-      return new ResponseEntity<>("Donation is verified", HttpStatus.OK);
+      AssetWrapper assetById = donationsService.getAssetById(assetId);
+      return new ResponseEntity<>(assetById, HttpStatus.OK);
     } else {
       return new ResponseEntity<>("Invalid quantity", HttpStatus.BAD_REQUEST);
     }

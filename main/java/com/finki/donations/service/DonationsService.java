@@ -11,7 +11,6 @@ import me.grapebaba.hyperledger.fabric.models.RpcResponse;
 
 import org.springframework.stereotype.Service;
 
-import com.finki.donations.model.Asset;
 import com.finki.donations.model.AssetWrapper;
 import com.finki.donations.model.ChaincodeMethodNames;
 import com.finki.donations.model.Donator;
@@ -20,6 +19,7 @@ import com.finki.donations.model.ItemListModel;
 import com.finki.donations.model.MethodType;
 import com.finki.donations.mapper.AssetMapper;
 import com.finki.donations.utils.TransactionResolver;
+import com.google.gson.Gson;
 
 /**
  * Service for communication with hyperledger.
@@ -50,7 +50,7 @@ public class DonationsService {
    * @param asset asset to be saved on hyperledger.
    * @return {@link AssetWrapper}
    */
-  public AssetWrapper createAssetWrapper(Asset asset) {
+  public AssetWrapper createAssetWrapper(String asset) {
     log.info("Start creating item");
     AssetWrapper assetWrapper = AssetMapper.createAssetWrapper(asset);
     ChaincodeOpPayload chaincodePayload = transactionResolver.createChaincodePayload(
@@ -99,13 +99,16 @@ public class DonationsService {
    *
    * @param assetWrapper document to be updated.
    */
-  public AssetWrapper updateItem(AssetWrapper assetWrapper) {
+  public AssetWrapper updateItem(String assetWrapper) {
     log.info("Start updating item");
+    AssetWrapper wrapper = new Gson().fromJson(assetWrapper, AssetWrapper.class);
+    List<String> argumentsToUpdateItem = prepareArgumentsToUpdateItem(wrapper);
+
     ChaincodeOpPayload chaincodePayload = transactionResolver.createChaincodePayload(
-      MethodType.INVOKE, ChaincodeMethodNames.UPDATE_ITEM, prepareArgumentsToUpdateItem(assetWrapper));
+      MethodType.INVOKE, ChaincodeMethodNames.UPDATE_ITEM, argumentsToUpdateItem);
     RpcResponse transactionInfo = transactionResolver.getTransactionInfo(chaincodePayload);
     String transactionInfoStatus = transactionInfo.getStatus();
-    return "OK".equals(transactionInfoStatus) ? assetWrapper : null;
+    return "OK".equals(transactionInfoStatus) ? wrapper : null;
   }
 
   private List<String> prepareArgumentsToUpdateItem(AssetWrapper assetWrapper){
